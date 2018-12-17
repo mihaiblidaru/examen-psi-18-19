@@ -26,7 +26,7 @@ MEDIA_DIR = os.path.join(BASE_DIR, 'media')
 SECRET_KEY = '@lm7v#d^46i5sub#a42o46r7jviy#(m#qve+mk8p+^%j&k7dp#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [u'examen-psi.herokuapp.com', u'127.0.0.1', u'localhost']
 
