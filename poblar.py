@@ -11,6 +11,10 @@ from aplicacion.models import Vendedor, Venta, Prenda
 
 
 def populate():
+    Venta.objects.all().delete()
+    Vendedor.objects.all().delete()
+    Vendedor.objects.all().delete()
+
     add_vendedor(1001, 'vendedor1')
     add_vendedor(1002, 'vendedor2')
     add_vendedor(1003, 'vendedor3')

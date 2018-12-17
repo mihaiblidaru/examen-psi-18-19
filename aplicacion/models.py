@@ -18,8 +18,6 @@ class Vendedor(models.Model):
         verbose_name_plural = "Vendedores"
 
 
-
-
 class Prenda(models.Model):
     nombreP = models.CharField(max_length=128, unique=True, blank=True, null=True)
 
