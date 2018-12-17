@@ -2,3 +2,4 @@ La aplicación está desplegada en heroku en la siguiente URL:
         
     https://examen-psi.herokuapp.com/
 
+Modelo de examen: B
