@@ -13,7 +13,7 @@ def prenda(request):
     error = None
     
     try:
-        prenda = Prenda.objects.get(id= 1003)
+        prenda = Prenda.objects.get(id=1003)
         nombreP = prenda.nombreP
     except ObjectDoesNotExist:
         error = 'Prenda con id 1003 no encontrada'
