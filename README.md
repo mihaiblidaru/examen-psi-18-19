@@ -1,4 +1,1 @@
-#PSI Práctica 2
-
-Adrian Rubio
-Mihai Blidaru
+Posible solución del examen de PSI. Diciembre 2018. Modelo B
