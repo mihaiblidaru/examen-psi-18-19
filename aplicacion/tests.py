@@ -1,250 +1,73 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.staticfiles import finders
+from django.test import Client
+from aplicacion.models import Vendedor, Prenda, Venta
 
-# Thanks to Enzo Roiz https://github.com/enzoroiz who made these tests during an internship with us
-
-class GeneralTests(TestCase):
-    def test_serving_static_files(self):
-        # If using static media properly result is not NONE once it finds aplicacion.jpg
-        result = finders.find('images/aplicacion.jpg')
-        self.assertIsNotNone(result)
-
-
-class IndexPageTests(TestCase):
-        
-    def test_index_contains_hello_message(self):
-        # Check if there is the message 'aplicacion Says'
-        # Chapter 4
-        response = self.client.get(reverse('index'))
-        self.assertIn(b'aplicacion says', response.content)
-         
-    def test_index_using_template(self):
-        # Check the template used to render index page
-        # Chapter 4
-        response = self.client.get(reverse('index'))
-        self.assertTemplateUsed(response, 'aplicacion/index.html')
-
-    def test_aplicacion_picture_displayed(self):
-        # Check if is there an image called 'aplicacion.jpg' on the index page
-        # Chapter 4
-        response = self.client.get(reverse('index'))
-        self.assertIn(b'img src="/static/images/aplicacion.jpg', response.content)
+class AplicacionTests(TestCase):
+    def setUp(self):
+        # The test client is a Python class that acts as a dummy Web browser
     
-    def test_index_has_title(self):
-        # Check to make sure that the title tag has been used
-        # And that the template contains the HTML from Chapter 4 
-        response = self.client.get(reverse('index'))
-        self.assertIn(b'<title>', response.content)
-        self.assertIn(b'</title>', response.content)
+        self._client   = Client()
+
+    def add_vendedor(self, id, nombre):
+        Vendedor.objects.get_or_create(id=id, nombreV=nombre)
+
+    def add_prenda(self, id, nombre):
+        Prenda.objects.get_or_create(id=id, nombreP=nombre)
+
+    def add_venta(self, id, vendedor, prenda):
+        v = Vendedor.objects.get(id=vendedor)
+        p = Prenda.objects.get(id=prenda)
+        Venta.objects.get_or_create(id=id, vendedor=v, prenda=p)
 
 
-class AboutPageTests(TestCase):
-        
-    def test_about_contains_create_message(self):
-        # Check if in the about page is there - and contains the specified message
-        # Exercise from Chapter 4
-        response = self.client.get(reverse('about'))
-        self.assertIn(b'This tutorial has been put together by', response.content)
-        
-        
-    def test_about_contain_image(self):
-        # Check if is there an image on the about page
-        # Chapter 4
-        response = self.client.get(reverse('about'))
-        self.assertIn(b'img src="/media/', response.content)
+    def test_examen(self): 
+        print '    Borrando todos los objetos de la base de datos'
+        Venta.objects.all().delete()
+        Vendedor.objects.all().delete()
+        Prenda.objects.all().delete()
 
-    def test_about_using_template(self):
-        # Check the template used to render index page
-        # Exercise from Chapter 4 
-        response = self.client.get(reverse('about'))
+        self.assertEqual(len(Venta.objects.all()), 0) 
+        self.assertEqual(len(Vendedor.objects.all()), 0) 
+        self.assertEqual(len(Prenda.objects.all()), 0) 
 
-        self.assertTemplateUsed(response, 'aplicacion/about.html')
-        
-        
-        
-class ModelTests(TestCase):
+        print '    Creando vendedor1'
+        self.add_vendedor(1001, 'vendedor1')
+        print '    Creando prenda1'
+        self.add_prenda(1001, 'prenda1')
+        print '    Creando prenda2'
+        self.add_prenda(1003, 'prenda2')
+        print '    Creando venta vendedor1 prenda2'
+        self.add_venta(1001, 1001, 1003)
 
-    def setUp(self):
-        try:
-            from populate_aplicacion import populate
-            populate()
-        except ImportError:
-            print('The module populate_aplicacion does not exist')
-        except NameError:
-            print('The function populate() does not exist or is not correct')
-        except:
-            print('Something went wrong in the populate() function :-(')
-        
-        
-    def get_category(self, name):
-        
-        from aplicacion.models import Category
-        try:                  
-            cat = Category.objects.get(name=name)
-        except Category.DoesNotExist:    
-            cat = None
-        return cat
-        
-    def test_python_cat_added(self):
-        cat = self.get_category('Python')  
-        self.assertIsNotNone(cat)
-         
-    def test_python_cat_with_views(self):
-        cat = self.get_category('Python')
-        self.assertEquals(cat.views, 128)
-        
-    def test_python_cat_with_likes(self):
-        cat = self.get_category('Python')
-        self.assertEquals(cat.likes, 64)
-        
+        vendedores = Vendedor.objects.all()
+        self.assertEqual(len(vendedores), 1) 
+        self.assertEqual(vendedores[0].id, 1001)
+        self.assertEqual(vendedores[0].nombreV, 'vendedor1')
+        print '    Vendedor creado correctamente'
 
-class Chapter4ViewTests(TestCase):
-    def test_index_contains_hello_message(self):
-        # Check if there is the message 'hello world!'
-        response = self.client.get(reverse('index'))
-        self.assertIn('aplicacion says', response.content)
+        prendas = Prenda.objects.all().order_by('id')
+        self.assertEqual(len(prendas), 2) 
+        self.assertEqual(prendas[0].id, 1001)
+        self.assertEqual(prendas[0].nombreP, 'prenda1')
+        self.assertEqual(prendas[1].id, 1003)
+        self.assertEqual(prendas[1].nombreP, 'prenda2')
+        print '    Prendas creadas correctamente'
 
-    def test_does_index_contain_img(self):
-        # Check if the index page contains an img
-        response = self.client.get(reverse('index'))
-        self.assertIn('img', response.content)
-
-    def test_about_using_template(self):
-        # Check the template used to render index page
-        # Exercise from Chapter 4
-        response = self.client.get(reverse('about'))
-
-        self.assertTemplateUsed(response, 'aplicacion/about.html')
-
-    def test_does_about_contain_img(self):
-        # Check if in the about page contains an image
-        response = self.client.get(reverse('about'))
-        self.assertIn('img', response.content)
-
-    def test_about_contains_create_message(self):
-        # Check if in the about page contains the message from the exercise
-        response = self.client.get(reverse('about'))
-        self.assertIn('This tutorial has been put together by', response.content)
+        ventas = Venta.objects.all()
+        self.assertEqual(len(ventas), 1) 
+        self.assertEqual(ventas[0].id, 1001)
+        self.assertEqual(ventas[0].vendedor.id, 1001)
+        self.assertEqual(ventas[0].prenda.id, 1003)
+        print '    Venta creada correctamente'
 
 
-class Chapter5ViewTests(TestCase):
+        response = self._client.post(reverse('prenda'))
 
-    def setUp(self):
-        try:
-            from populate_aplicacion import populate
-            populate()
-        except ImportError:
-            print('The module populate_aplicacion does not exist')
-        except NameError:
-            print('The function populate() does not exist or is not correct')
-        except:
-            print('Something went wrong in the populate() function :-(')
+        print '    Comprobando resultados devueltos por la vista'
+        self.assertIn('prenda2', str(response.content).decode('utf-8'))
+        self.assertIn('1001', str(response.content).decode('utf-8'))
+        self.assertIn('vendedor1', str(response.content).decode('utf-8'))
+        print '    Resultados ok'
 
-
-    def get_category(self, name):
-
-        from aplicacion.models import Category
-        try:
-            cat = Category.objects.get(name=name)
-        except Category.DoesNotExist:
-            cat = None
-        return cat
-
-    def test_python_cat_added(self):
-        cat = self.get_category('Python')
-        self.assertIsNotNone(cat)
-
-    def test_python_cat_with_views(self):
-        cat = self.get_category('Python')
-
-        self.assertEquals(cat.views, 128)
-
-    def test_python_cat_with_likes(self):
-        cat = self.get_category('Python')
-        self.assertEquals(cat.likes, 64)
-
-    def test_view_has_title(self):
-        response = self.client.get(reverse('index'))
-
-        #Check title used correctly
-        self.assertIn('<title>', response.content)
-        self.assertIn('</title>', response.content)
-
-    # Need to add tests to:
-    # check admin interface - is it configured and set up
-
-    def test_admin_interface_page_view(self):
-        from admin import PageAdmin
-        self.assertIn('category', PageAdmin.list_display)
-        self.assertIn('url', PageAdmin.list_display)
-
-
-class Chapter6ViewTests(TestCase):
-
-    def setUp(self):
-        try:
-            from populate_aplicacion import populate
-            populate()
-        except ImportError:
-            print('The module populate_aplicacion does not exist')
-        except NameError:
-            print('The function populate() does not exist or is not correct')
-        except:
-            print('Something went wrong in the populate() function :-(')
-
-
-    # are categories displayed on index page?
-
-    # does the category model have a slug field?
-
-
-    # test the slug field works..
-    def test_does_slug_field_work(self):
-        from aplicacion.models import Category
-        cat = Category(name='how do i create a slug in django')
-        cat.save()
-        self.assertEqual(cat.slug,'how-do-i-create-a-slug-in-django')
-
-    # test category view does the page exist?
-
-
-    # test whether you can navigate from index to a category page
-
-
-    # test does index page contain top five pages?
-
-    # test does index page contain the words "most liked" and "most viewed"
-
-    # test does category page contain a link back to index page?
-
-
-class Chapter7ViewTests(TestCase):
-
-    def setUp(self):
-        try:
-            from forms import PageForm
-            from forms import CategoryForm
-
-        except ImportError:
-            print('The module forms does not exist')
-        except NameError:
-            print('The class PageForm does not exist or is not correct')
-        except:
-            print('Something else went wrong :-(')
-
-    pass
-    # test is there a PageForm in aplicacion.forms
-
-    # test is there a CategoryForm in aplicacion.forms
-
-    # test is there an add page page?
-
-    # test is there an category page?
-
-
-    # test if index contains link to add category page
-    #<a href="/aplicacion/add_category/">Add a New Category</a><br />
-
-
-    # test if the add_page.html template exists.
