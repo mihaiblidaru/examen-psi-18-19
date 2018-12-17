@@ -1,0 +1,21 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+        {% if error %}
+            {{error}}
+        {% endif %}
+
+        Vendedores que vendieron la prenda {{nombreP}}
+
+        <table>
+            {% for vendedor in vendedores %}
+            <tr>
+                <td>{{vendedor.id}}</td>
+                <td>{{vendedor.nombreV}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
